@@ -1,8 +1,30 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+/* react-grid-layout + react-resizable */
+@import "react-grid-layout/css/styles.css";
+@import "react-resizable/css/styles.css";
+
+
+/* Light defaults */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc; /* slate-50 */
+  --foreground: #0f172a; /* slate-900 */
+
+  /* optional surfaces if you want to use them later */
+  --card: #ffffff;
+  --card-2: #f1f5f9;     /* slate-100 */
+  --border: rgba(0, 0, 0, 0.10);
+}
+
+/* Dark overrides */
+.dark {
+  --background: #0b0f17;
+  --foreground: #e5e7eb;
+
+  --card: rgba(255, 255, 255, 0.05);
+  --card-2: rgba(255, 255, 255, 0.03);
+  --border: rgba(255, 255, 255, 0.10);
 }
 
 @theme inline {
@@ -12,15 +34,75 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
+  /* Light mode background: subtle, NOT washed out */
+  background:
+    radial-gradient(circle at top, rgba(15, 23, 42, 0.06), transparent 45%),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dark mode background: your original glow */
+.dark body {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 45%),
+    var(--background);
+}
+
+/* ---- React Big Calendar: dark theme overrides (only when dark) ---- */
+.dark .rbc-dark .rbc-month-view,
+.dark .rbc-dark .rbc-time-view,
+.dark .rbc-dark .rbc-agenda-view {
+  background: transparent;
+  color: #e5e7eb;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .rbc-dark .rbc-toolbar button {
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+
+.dark .rbc-dark .rbc-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.dark .rbc-dark .rbc-toolbar button.rbc-active {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.dark .rbc-dark .rbc-header,
+.dark .rbc-dark .rbc-time-header,
+.dark .rbc-dark .rbc-time-content,
+.dark .rbc-dark .rbc-timeslot-group,
+.dark .rbc-dark .rbc-day-bg,
+.dark .rbc-dark .rbc-month-row {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .rbc-dark .rbc-off-range-bg {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dark .rbc-dark .rbc-today {
+  background: rgba(59, 130, 246, 0.10);
+}
+
+.dark .rbc-dark .rbc-label,
+.dark .rbc-dark .rbc-time-gutter {
+  color: rgba(229, 231, 235, 0.75);
+}
+
+.dark .rbc-dark .rbc-agenda-table {
+  color: #e5e7eb;
 }
