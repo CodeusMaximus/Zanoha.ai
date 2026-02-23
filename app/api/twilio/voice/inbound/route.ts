@@ -3,43 +3,59 @@ import { getDb } from "@/lib/mongodb";
 
 export const runtime = "nodejs";
 
-function twiml(xml: string) {
-  return new NextResponse(xml, {
-    headers: { "Content-Type": "text/xml" },
-  });
-}
-
 export async function POST(req: Request) {
-  const url = new URL(req.url);
-  const businessId = url.searchParams.get("businessId") || "";
+  const { searchParams } = new URL(req.url);
+  const businessId = searchParams.get("businessId") || "";
+
+  const raw = await req.text();
+  const params = new URLSearchParams(raw);
+  const from = params.get("From") || "";
+
+  const wsUrlBase = process.env.PYTHON_SERVICE_URL?.replace("https://", "wss://");
+
+  if (!wsUrlBase) {
+    return new NextResponse("Missing PYTHON_SERVICE_URL", { status: 500 });
+  }
 
   try {
     const db = await getDb();
     const cfg = await db.collection("business_twilio").findOne({ businessId });
 
-    // If forwarding enabled, forward the call immediately
+    // If forwarding enabled, forward the call
     if (cfg?.forwardingEnabled && cfg?.forwardingNumber) {
-      return twiml(`
+      return new NextResponse(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Dial>
     <Number>${cfg.forwardingNumber}</Number>
   </Dial>
-</Response>
-`.trim());
+</Response>`, { headers: { "Content-Type": "text/xml; charset=utf-8" } });
     }
 
-    // Otherwise: placeholder (swap this with your AI receptionist TwiML)
-    return twiml(`
+    // Connect to Railway AI Receptionist
+    const twimlString = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say>Thanks for calling. Please hold while our assistant helps you.</Say>
-</Response>
-`.trim());
+  <Connect>
+    <Stream url="${wsUrlBase}">
+      <Parameter name="businessId" value="${businessId}" />
+      <Parameter name="from" value="${from}" />
+    </Stream>
+  </Connect>
+</Response>`;
+
+    return new NextResponse(twimlString, {
+      status: 200,
+      headers: { "Content-Type": "text/xml; charset=utf-8" },
+    });
+
   } catch (e) {
     console.error(e);
-    return twiml(`
+    return new NextResponse(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say>Sorry, we are having technical issues. Please try again later.</Say>
-</Response>
-`.trim());
+</Response>`, { headers: { "Content-Type": "text/xml; charset=utf-8" } });
   }
+}
+
+export async function GET(req: Request) {
+  return POST(req);
 }
