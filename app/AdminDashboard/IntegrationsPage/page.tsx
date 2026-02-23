@@ -27,6 +27,10 @@ export default function IntegrationsPage() {
   // Email provider connect modal (Gmail/Outlook)
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailProvider, setEmailProvider] = useState<"gmail" | "outlook">("gmail");
+  const [forwardEnabled, setForwardEnabled] = useState(false);
+  const [forwardNumber, setForwardNumber] = useState("");
+  const [forwardSaving, setForwardSaving] = useState(false);
+  const [twilioPhoneNumber, setTwilioPhoneNumber] = useState("");
 
   // Check theme changes
   useEffect(() => {
@@ -233,6 +237,18 @@ export default function IntegrationsPage() {
     if (integration.id === "outlook") return openEmailConnect("outlook");
     setSelectedIntegration(integration);
   }
+  async function openForwardingModal() {
+    try {
+      const r = await fetch("/api/twilio/config", { cache: "no-store" });
+      const data = await r.json();
+      setForwardEnabled(!!data.forwardingEnabled);
+      setForwardNumber(data.forwardingNumber || "");
+      setTwilioPhoneNumber(data.phoneNumber || "");
+    } catch {
+      // use defaults
+    }
+    setShowForwardingModal(true);
+  }
 
   const ShellBg = isDarkMode ? "bg-neutral-950 text-white" : "bg-neutral-50 text-neutral-900";
   const CardBg = isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200";
@@ -318,11 +334,10 @@ export default function IntegrationsPage() {
                         <>
                           <button
                             onClick={() => setSelectedIntegration(integration)}
-                            className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-colors ${
-                              isDarkMode
-                                ? "bg-neutral-800 hover:bg-neutral-700 text-white"
-                                : "bg-neutral-900 hover:bg-neutral-800 text-white"
-                            }`}
+                            className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-colors ${isDarkMode
+                              ? "bg-neutral-800 hover:bg-neutral-700 text-white"
+                              : "bg-neutral-900 hover:bg-neutral-800 text-white"
+                              }`}
                           >
                             Configure
                           </button>
@@ -338,11 +353,10 @@ export default function IntegrationsPage() {
 
                           <button
                             onClick={() => setIntegrationStatus(integration.id, "disconnected")}
-                            className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-colors ${
-                              isDarkMode
-                                ? "border border-red-500/20 text-red-400 hover:bg-red-500/10"
-                                : "border border-red-500 text-red-600 hover:bg-red-50"
-                            }`}
+                            className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-colors ${isDarkMode
+                              ? "border border-red-500/20 text-red-400 hover:bg-red-500/10"
+                              : "border border-red-500 text-red-600 hover:bg-red-50"
+                              }`}
                           >
                             Disconnect
                           </button>
@@ -384,9 +398,8 @@ export default function IntegrationsPage() {
                 className="fixed inset-0 flex items-center justify-center z-50 p-4"
               >
                 <div
-                  className={`w-full max-w-2xl rounded-2xl border ${
-                    isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"
-                  } p-6`}
+                  className={`w-full max-w-2xl rounded-2xl border ${isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"
+                    } p-6`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex justify-between items-start mb-6">
@@ -400,9 +413,8 @@ export default function IntegrationsPage() {
                     </div>
                     <button
                       onClick={() => setShowEmailModal(false)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
-                      } transition-colors`}
+                      className={`p-2 rounded-lg ${isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
+                        } transition-colors`}
                       aria-label="Close"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,9 +425,8 @@ export default function IntegrationsPage() {
 
                   <div className="space-y-5">
                     <div
-                      className={`p-4 rounded-xl border ${
-                        isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-50 border-neutral-200"
-                      }`}
+                      className={`p-4 rounded-xl border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-50 border-neutral-200"
+                        }`}
                     >
                       <div className="font-semibold mb-1">Recommended (OAuth)</div>
                       <p className={`text-sm ${Muted}`}>
@@ -435,11 +446,10 @@ export default function IntegrationsPage() {
                         <button
                           type="button"
                           onClick={() => alert("UI only: later we’ll open scope details")}
-                          className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-colors ${
-                            isDarkMode
-                              ? "bg-neutral-700 hover:bg-neutral-600 text-white"
-                              : "bg-neutral-900 hover:bg-neutral-800 text-white"
-                          }`}
+                          className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-colors ${isDarkMode
+                            ? "bg-neutral-700 hover:bg-neutral-600 text-white"
+                            : "bg-neutral-900 hover:bg-neutral-800 text-white"
+                            }`}
                         >
                           View Permissions
                         </button>
@@ -451,9 +461,8 @@ export default function IntegrationsPage() {
                     </div>
 
                     <div
-                      className={`p-4 rounded-xl border ${
-                        isDarkMode ? "bg-blue-500/10 border-blue-500/20" : "bg-blue-50 border-blue-200"
-                      }`}
+                      className={`p-4 rounded-xl border ${isDarkMode ? "bg-blue-500/10 border-blue-500/20" : "bg-blue-50 border-blue-200"
+                        }`}
                     >
                       <div className={`text-sm ${isDarkMode ? "text-blue-200" : "text-blue-900"}`}>
                         💡 If you want “Compose” with CC/BCC + folders inside your CRM, OAuth is the way.
@@ -464,9 +473,8 @@ export default function IntegrationsPage() {
                     <div className="flex justify-end gap-3">
                       <button
                         onClick={() => setShowEmailModal(false)}
-                        className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${
-                          isDarkMode ? "bg-neutral-800 hover:bg-neutral-700" : "bg-neutral-200 hover:bg-neutral-300"
-                        }`}
+                        className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${isDarkMode ? "bg-neutral-800 hover:bg-neutral-700" : "bg-neutral-200 hover:bg-neutral-300"
+                          }`}
                       >
                         Close
                       </button>
@@ -507,9 +515,8 @@ export default function IntegrationsPage() {
                 className="fixed inset-0 flex items-center justify-center z-50 p-4"
               >
                 <div
-                  className={`w-full max-w-2xl max-h-[90vh] overflow-auto rounded-2xl border ${
-                    isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"
-                  } p-6`}
+                  className={`w-full max-w-2xl max-h-[90vh] overflow-auto rounded-2xl border ${isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"
+                    } p-6`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex justify-between items-start mb-6">
@@ -526,9 +533,8 @@ export default function IntegrationsPage() {
                     </div>
                     <button
                       onClick={() => setSelectedIntegration(null)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
-                      } transition-colors`}
+                      className={`p-2 rounded-lg ${isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
+                        } transition-colors`}
                       aria-label="Close"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -550,9 +556,8 @@ export default function IntegrationsPage() {
                                 type="text"
                                 value={selectedIntegration.settings?.accountSid}
                                 readOnly
-                                className={`w-full px-3 py-2 rounded-lg border ${
-                                  isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
-                                }`}
+                                className={`w-full px-3 py-2 rounded-lg border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
+                                  }`}
                               />
                             </div>
                             <div>
@@ -563,9 +568,8 @@ export default function IntegrationsPage() {
                                 type="password"
                                 value={selectedIntegration.settings?.authToken}
                                 readOnly
-                                className={`w-full px-3 py-2 rounded-lg border ${
-                                  isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
-                                }`}
+                                className={`w-full px-3 py-2 rounded-lg border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
+                                  }`}
                               />
                             </div>
                           </>
@@ -581,9 +585,8 @@ export default function IntegrationsPage() {
                                 type="text"
                                 value={selectedIntegration.settings?.publicKey}
                                 readOnly
-                                className={`w-full px-3 py-2 rounded-lg border ${
-                                  isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
-                                }`}
+                                className={`w-full px-3 py-2 rounded-lg border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
+                                  }`}
                               />
                             </div>
                           </>
@@ -599,9 +602,8 @@ export default function IntegrationsPage() {
                                 type="password"
                                 value={selectedIntegration.settings?.apiKey}
                                 readOnly
-                                className={`w-full px-3 py-2 rounded-lg border ${
-                                  isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
-                                }`}
+                                className={`w-full px-3 py-2 rounded-lg border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
+                                  }`}
                               />
                             </div>
                             <div>
@@ -610,10 +612,9 @@ export default function IntegrationsPage() {
                               </label>
                               <select
                                 value={selectedIntegration.settings?.model}
-                                className={`w-full px-3 py-2 rounded-lg border ${
-                                  isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-300"
-                                }`}
-                                onChange={() => {}}
+                                className={`w-full px-3 py-2 rounded-lg border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-300"
+                                  }`}
+                                onChange={() => { }}
                               >
                                 <option value="gpt-4">GPT-4</option>
                                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
@@ -633,9 +634,8 @@ export default function IntegrationsPage() {
                     ) : (
                       <>
                         <div
-                          className={`p-4 rounded-lg border ${
-                            isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-blue-50 border-blue-200"
-                          }`}
+                          className={`p-4 rounded-lg border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-blue-50 border-blue-200"
+                            }`}
                         >
                           <p className={`text-sm ${isDarkMode ? "text-neutral-300" : "text-blue-900"}`}>
                             UI only: later we’ll use OAuth or API credentials depending on provider.
@@ -649,9 +649,8 @@ export default function IntegrationsPage() {
                           <input
                             type="text"
                             placeholder="Enter your API key..."
-                            className={`w-full px-3 py-2 rounded-lg border ${
-                              isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-300"
-                            }`}
+                            className={`w-full px-3 py-2 rounded-lg border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-300"
+                              }`}
                           />
                         </div>
                       </>
@@ -661,9 +660,8 @@ export default function IntegrationsPage() {
                   <div className="flex justify-end gap-3 mt-6">
                     <button
                       onClick={() => setSelectedIntegration(null)}
-                      className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                        isDarkMode ? "bg-neutral-800 hover:bg-neutral-700" : "bg-neutral-200 hover:bg-neutral-300"
-                      }`}
+                      className={`px-6 py-2 rounded-lg font-medium transition-colors ${isDarkMode ? "bg-neutral-800 hover:bg-neutral-700" : "bg-neutral-200 hover:bg-neutral-300"
+                        }`}
                     >
                       Cancel
                     </button>
@@ -705,9 +703,8 @@ export default function IntegrationsPage() {
                 className="fixed inset-0 flex items-center justify-center z-50 p-4"
               >
                 <div
-                  className={`w-full max-w-2xl rounded-2xl border ${
-                    isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"
-                  } p-6`}
+                  className={`w-full max-w-2xl rounded-2xl border ${isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"
+                    } p-6`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex justify-between items-start mb-6">
@@ -718,10 +715,9 @@ export default function IntegrationsPage() {
                       </p>
                     </div>
                     <button
-                      onClick={() => setShowForwardingModal(false)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
-                      } transition-colors`}
+                      onClick={() => openForwardingModal()}
+                      className={`p-2 rounded-lg ${isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
+                        } transition-colors`}
                       aria-label="Close"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -732,13 +728,33 @@ export default function IntegrationsPage() {
 
                   <div className="space-y-6">
                     <div
-                      className={`p-4 rounded-lg border ${
-                        isDarkMode ? "bg-blue-500/10 border-blue-500/20" : "bg-blue-50 border-blue-200"
-                      }`}
+                      className={`p-4 rounded-lg border ${isDarkMode ? "bg-blue-500/10 border-blue-500/20" : "bg-blue-50 border-blue-200"
+                        }`}
                     >
                       <p className={`text-sm ${isDarkMode ? "text-blue-300" : "text-blue-900"}`}>
                         💡 <strong>How it works:</strong> When customers call your existing number, it forwards to your AI receptionist Twilio number.
                       </p>
+                    </div>
+
+                    {/* Enable/Disable Toggle */}
+                    <div className={`p-4 rounded-xl border ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-50 border-neutral-200"}`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-sm">Enable Call Forwarding</div>
+                          <div className={`text-xs mt-0.5 ${Muted}`}>
+                            When OFF, calls go directly to your AI receptionist
+                          </div>
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={forwardEnabled}
+                            onChange={(e) => setForwardEnabled(e.target.checked)}
+                            className="h-4 w-4"
+                          />
+                          <span className="text-sm font-medium">{forwardEnabled ? "On" : "Off"}</span>
+                        </label>
+                      </div>
                     </div>
 
                     <div>
@@ -747,11 +763,12 @@ export default function IntegrationsPage() {
                       </label>
                       <input
                         type="tel"
-                        placeholder="+1 (555) 987-6543"
-                        defaultValue="+1 (555) 987-6543"
-                        className={`w-full px-3 py-3 rounded-lg border text-lg ${
-                          isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-300"
-                        }`}
+                        value={forwardNumber}
+                        onChange={(e) => setForwardNumber(e.target.value)}
+                        placeholder="+13475551234 or (347) 555-1234"
+                        disabled={!forwardEnabled}
+                        className={`w-full px-3 py-3 rounded-lg border text-lg outline-none disabled:opacity-40 ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-300"
+                          }`}
                       />
                     </div>
 
@@ -767,11 +784,10 @@ export default function IntegrationsPage() {
                       </label>
                       <input
                         type="tel"
-                        value="+1 (555) 123-4567"
+                        value={twilioPhoneNumber}
                         readOnly
-                        className={`w-full px-3 py-3 rounded-lg border text-lg ${
-                          isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
-                        }`}
+                        className={`w-full px-3 py-3 rounded-lg border text-lg ${isDarkMode ? "bg-neutral-800 border-neutral-700" : "bg-neutral-100 border-neutral-300"
+                          }`}
                       />
                     </div>
 
@@ -779,15 +795,14 @@ export default function IntegrationsPage() {
                       <h3 className="font-semibold mb-3">Setup Instructions:</h3>
                       <ol className={`space-y-2 text-sm ${isDarkMode ? "text-neutral-300" : "text-neutral-700"}`}>
                         <li className="flex gap-2"><span className="font-bold">1.</span><span>Enable call forwarding with your carrier</span></li>
-                        <li className="flex gap-2"><span className="font-bold">2.</span><span>Forward to: <strong>+1 (555) 123-4567</strong></span></li>
+                        <li className="flex gap-2"><span className="font-bold">2.</span><span>Forward to: <strong>{twilioPhoneNumber || "+1 (xxx) xxx-xxxx"}</strong></span></li>
                         <li className="flex gap-2"><span className="font-bold">3.</span><span>Test by calling your business number</span></li>
                       </ol>
                     </div>
 
                     <div
-                      className={`p-4 rounded-lg border ${
-                        isDarkMode ? "bg-orange-500/10 border-orange-500/20" : "bg-orange-50 border-orange-200"
-                      }`}
+                      className={`p-4 rounded-lg border ${isDarkMode ? "bg-orange-500/10 border-orange-500/20" : "bg-orange-50 border-orange-200"
+                        }`}
                     >
                       <p className={`text-sm ${isDarkMode ? "text-orange-300" : "text-orange-900"}`}>
                         ⚠️ Call forwarding may incur carrier charges.
@@ -798,14 +813,45 @@ export default function IntegrationsPage() {
                   <div className="flex justify-end gap-3 mt-6">
                     <button
                       onClick={() => setShowForwardingModal(false)}
-                      className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                        isDarkMode ? "bg-neutral-800 hover:bg-neutral-700" : "bg-neutral-200 hover:bg-neutral-300"
-                      }`}
+                      className={`px-6 py-2 rounded-lg font-medium transition-colors ${isDarkMode ? "bg-neutral-800 hover:bg-neutral-700" : "bg-neutral-200 hover:bg-neutral-300"
+                        }`}
                     >
                       Close
                     </button>
-                    <button className="px-6 py-2 rounded-lg font-medium bg-emerald-500 hover:bg-emerald-600 text-white transition-colors">
-                      Mark as Complete
+                    <button
+                      disabled={forwardSaving}
+                      onClick={async () => {
+                        setForwardSaving(true);
+                        try {
+                          const digits = forwardNumber.replace(/\D/g, "");
+                          const normalized = forwardEnabled
+                            ? digits.length === 10
+                              ? `+1${digits}`
+                              : forwardNumber
+                            : "";
+                          const r = await fetch("/api/twilio/forwarding/set", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              enabled: forwardEnabled,
+                              forwardingNumber: normalized,
+                            }),
+                          });
+                          const data = await r.json();
+                          if (!r.ok) throw new Error(data?.error || "Save failed");
+                          setShowForwardingModal(false);
+                        } catch (e: any) {
+                          alert(e?.message || "Save failed");
+                        } finally {
+                          setForwardSaving(false);
+                        }
+                      }}
+                      className={`px-6 py-2 rounded-lg font-medium text-white transition-colors ${forwardSaving
+                        ? "bg-neutral-500 cursor-not-allowed"
+                        : "bg-emerald-500 hover:bg-emerald-600"
+                        }`}
+                    >
+                      {forwardSaving ? "Saving..." : "Save"}
                     </button>
                   </div>
                 </div>
